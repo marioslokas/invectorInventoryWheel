@@ -17530,7 +17530,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: 11404304, guid: 092f8aa667b2004459042a82a4c9e41d, type: 3}
       propertyPath: startItems.Array.data[4].id
-      value: 1
+      value: 7
       objectReference: {fileID: 0}
     - target: {fileID: 11404304, guid: 092f8aa667b2004459042a82a4c9e41d, type: 3}
       propertyPath: startItems.Array.data[4].amount

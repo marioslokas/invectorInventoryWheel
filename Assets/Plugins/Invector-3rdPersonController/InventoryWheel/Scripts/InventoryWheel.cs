@@ -30,6 +30,7 @@ namespace Invector
         [Header("Categories")]
         [SerializeField] private vItemCategories[] categories;
 
+
 		[Header("Items Filter")]
 		public List<vItemType> ItemsFilter = new List<vItemType> ();
 
@@ -94,17 +95,24 @@ namespace Invector
 		private float FillAmount;
 		private float FillRadius;
 
+        // categories that have no items currently
+        private List<vItemType> disabledCategories;
 
-		[HideInInspector]
+
+        [HideInInspector]
 		public vInventory Inventory;
 
 		[HideInInspector]
 		public bool IsWheelOpen = false;
-		#endregion
+        #endregion
 
+        private void Awake()
+        {
+            disabledCategories = new List<vItemType>();
+        }
 
-		#region Main Methods
-		void Start ()
+        #region Main Methods
+        void Start ()
 		{
 			// assign references
 			_Animator = GetComponent<Animator> ();
@@ -164,15 +172,25 @@ namespace Invector
 			if (!IsWheelOpen)
 				return;
 
-			// check if we need to refresh the wheel
-			if (WheelItemCount > WheelItemInstances.Count) {
-				Refresh ();
-				return;
-			}
+            // refresh the wheel if an item from a disabled category was added
+            List<vItemType> currentItemTypes = GetWheelItemTypes();
 
-			// update wheel
-			UpdateWheel ();
-		}
+            if (currentItemTypes.Any(x=> disabledCategories.Contains(x)))
+            {
+                Refresh();
+                return;
+            }
+
+            // check if we need to refresh the wheel
+            //if (WheelItemCount > WheelItemInstances.Count())
+            //{
+            //    Refresh();
+            //    return;
+            //}
+
+            // update wheel
+            UpdateWheel();
+        }
 
 
 		void HandleInput ()
@@ -398,6 +416,8 @@ namespace Invector
 
         void BuildWheel()
         {
+            disabledCategories.Clear();
+
             FillAmount = 1f / (float)categories.Length;
             FillRadius = FillAmount * 360f;
 
@@ -410,6 +430,10 @@ namespace Invector
                 // get inventory item
                 var category = categories[i];
                 List<vItem> thisCategoryInventoryItems = GetWheelItems(category.categoryType);
+                if (thisCategoryInventoryItems == null)
+                {
+                    thisCategoryInventoryItems = new List<vItem>();
+                }
 
 
                 // calculate rotation
@@ -432,7 +456,10 @@ namespace Invector
                 InventoryWheelItem IWheelItemScript = IWheelItem.AddComponent<InventoryWheelItem>();
 
                 if (thisCategoryInventoryItems.Count == 0)
+                {
                     IWheelItemScript.Disabled = true;
+                    disabledCategories.Add(category.categoryType); // store this type as one that has no items currently
+                }
                 else
                     IWheelItemScript.Items = thisCategoryInventoryItems;
 
@@ -447,6 +474,8 @@ namespace Invector
                 IWheelItemScript.CachedImage.sprite = category.icon;
                 IWheelItemScript.CachedImage.rectTransform.sizeDelta = WheelItemSize;
                 WheelItemInstances.Add(IWheelItemScript);
+                Debug.Log("Adding category to wheel");
+
 
                 // instantiate separator
                 if (UseSeperators && SeparatorPrefab != null)
@@ -547,14 +576,29 @@ namespace Invector
 			return Inventory.items.FindAll(item => ItemsFilter.Contains(item.type));
 		}
 
+        List<vItemType> GetWheelItemTypes()
+        {
+            List<vItemType> types = new List<vItemType>();
+            for (int i = 0; i < Inventory.items.Count; i++)
+            {
+                if (!types.Contains(Inventory.items[i].type))
+                {
+                    types.Add(Inventory.items[i].type);
+                }
+            }
+
+            return types;
+        }
+
         /// <summary>
         /// Retrieves the item based on a filtered type
         /// </summary>
         /// <param name="type"></param>
         /// <returns></returns>
-        List<vItem> GetWheelItems(vItemType type)
+        
+        private List<vItem> GetWheelItems(vItemType type)
         {
-            return Inventory.items.FindAll(item => /*ItemsFilter.Contains(item.type)*/ item.type.Equals(type));
+            return Inventory.items?.FindAll(item => /*ItemsFilter.Contains(item.type)*/ item.type.Equals(type));
         }
 
 
