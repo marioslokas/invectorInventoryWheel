@@ -17,46 +17,43 @@ namespace Invector
     {
         public bool Disabled;
 
-        [HideInInspector]
-        public vItem Item;
-
-        //public virtual vItemAttribute AmmoCount
-        //{
-        //    get {
-
-        //        return item.attributes.Find(a => a.name.Equals(Invector.vItemManager.vItemAttributes.AmmoCount));
-        //    }
-        //}
-
-        //public virtual vItemType Type
-        //{
-        //    get { return item.type; }
-        //}
-
-        //[HideInInspector]
-        //public virtual Sprite WheelItemSprite
-        //{
-        //    get { return item.icon; }
-        //}
-
-        //[HideInInspector]
-        //public virtual string WheelItemString
-        //{
-        //    get { return item.name; }
-        //}
-
-        //public void SetVItem(vItem item)
-        //{
-        //    this.item = item;
-        //}
+        // the current viewed/selectedItem in this category
+        public vItem CurrentItem => Items[CurrentItemIndex];
 
         [HideInInspector]
-		public vShooterWeapon ShooterWeapon;
+        public int CurrentItemIndex;
 
-		[HideInInspector]
-		public float Rotation;
+        [HideInInspector]
+        public List<vItem> Items;
 
-		[HideInInspector]
-		public Image CachedImage;
+        [HideInInspector]
+        public vShooterWeapon ShooterWeapon;
+
+        [HideInInspector]
+        public float Rotation;
+
+        [HideInInspector]
+        public Image CachedImage;
+
+        public void CycleCategory(bool up)
+        {
+            if (up)
+            {
+                CurrentItemIndex++;
+                if (CurrentItemIndex >= Items.Count)
+                {
+                    CurrentItemIndex = 0;
+                }
+            }
+            else
+            {
+                CurrentItemIndex--;
+                if (CurrentItemIndex < 0)
+                {
+                    CurrentItemIndex = Items.Count - 1;
+                }
+            }
+            
+        }
 	}
 }

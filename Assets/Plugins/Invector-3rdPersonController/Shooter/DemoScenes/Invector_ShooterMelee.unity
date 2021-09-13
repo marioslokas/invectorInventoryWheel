@@ -4028,21 +4028,18 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   categories:
-  - nameDisplay: Melee
-    itemType: 1
-    displaySprite: {fileID: 21300000, guid: 217b370c97568eb4abf97e23a136e318, type: 3}
-  - nameDisplay: Shooter
-    itemType: 2
-    displaySprite: {fileID: 21300000, guid: 0cf8e5588722acf40bfed44d2b39a429, type: 3}
-  - nameDisplay: Consumables
-    itemType: 0
-    displaySprite: {fileID: 21300000, guid: 862e9f0d31ea667448a05c4d0ec24492, type: 3}
-  - nameDisplay: Builder
-    itemType: 5
-    displaySprite: {fileID: 21300000, guid: e292a6d3c6f4e7640849f34d8ba9dd4c, type: 3}
-  - nameDisplay: Crafting
-    itemType: 7
-    displaySprite: {fileID: 21300000, guid: eb080c8722aa8ab41803a7a38800053a, type: 3}
+  - categoryType: 2
+    icon: {fileID: 21300000, guid: 711d9e1db66d2334aa75bb3d48a326c5, type: 3}
+    name: Bow
+  - categoryType: 3
+    icon: {fileID: 21300000, guid: 73e0a83aa05db154daf72e349d0668bb, type: 3}
+    name: Ammo
+  - categoryType: 0
+    icon: {fileID: 21300004, guid: 08b350e61df81f24d97072896d29546e, type: 3}
+    name: Test
+  - categoryType: 1
+    icon: {fileID: 21300000, guid: a568bb7d845ecf140a30a74582d14f45, type: 3}
+    name: Swords
   ItemsFilter: 020000000100000000000000
   BackgroundColor: {r: 0.17254902, g: 0.18431373, b: 0.21176471, a: 0.9607843}
   IndicatorColor: {r: 1, g: 0.7861271, b: 0, a: 0.981}
@@ -4073,6 +4070,21 @@ MonoBehaviour:
     useInput: 1
     isAxisInUse: 0
     keyboard: Tab
+    keyboardAxis: 0
+    joystick: LB
+    joystickAxis: 0
+    mobile: LB
+    mobileAxis: 0
+    joystickAxisInvert: 0
+    keyboardAxisInvert: 0
+    mobileAxisInvert: 0
+    timeButtonWasPressed: 0
+    lastTimeTheButtonWasPressed: 0
+    inButtomTimer: 0
+  CycleCategory:
+    useInput: 1
+    isAxisInUse: 0
+    keyboard: Mouse ScrollWheel
     keyboardAxis: 0
     joystick: LB
     joystickAxis: 0
@@ -17516,6 +17528,34 @@ PrefabInstance:
       propertyPath: startItems.Array.data[3].amount
       value: 1
       objectReference: {fileID: 0}
+    - target: {fileID: 11404304, guid: 092f8aa667b2004459042a82a4c9e41d, type: 3}
+      propertyPath: startItems.Array.data[4].id
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11404304, guid: 092f8aa667b2004459042a82a4c9e41d, type: 3}
+      propertyPath: startItems.Array.data[4].amount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11404304, guid: 092f8aa667b2004459042a82a4c9e41d, type: 3}
+      propertyPath: startItems.Array.data[5].id
+      value: 7
+      objectReference: {fileID: 0}
+    - target: {fileID: 11404304, guid: 092f8aa667b2004459042a82a4c9e41d, type: 3}
+      propertyPath: startItems.Array.data[5].amount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11404304, guid: 092f8aa667b2004459042a82a4c9e41d, type: 3}
+      propertyPath: startItems.Array.data[6].id
+      value: 24
+      objectReference: {fileID: 0}
+    - target: {fileID: 11404304, guid: 092f8aa667b2004459042a82a4c9e41d, type: 3}
+      propertyPath: startItems.Array.data[6].amount
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 11404304, guid: 092f8aa667b2004459042a82a4c9e41d, type: 3}
+      propertyPath: inventory
+      value: 
+      objectReference: {fileID: 1207848064}
     - target: {fileID: 11439352, guid: 092f8aa667b2004459042a82a4c9e41d, type: 3}
       propertyPath: openCloseWindow
       value: 1

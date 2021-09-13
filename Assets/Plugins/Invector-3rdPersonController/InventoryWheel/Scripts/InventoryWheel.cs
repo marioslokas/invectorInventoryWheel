@@ -18,10 +18,17 @@ namespace Invector
 	[RequireComponent(typeof(AudioSource))]
 	public class InventoryWheel : MonoBehaviour
 	{
-        #region Variables
-        [Header("Modifications")]
-        [SerializeField] private WheelAreaCategory[] categories;
+        [Serializable]
+        private class vItemCategories
+        {
+            public vItemType categoryType;
+            public Sprite icon;
+            public string name;
+        }
 
+        #region Variables
+        [Header("Categories")]
+        [SerializeField] private vItemCategories[] categories;
 
 		[Header("Items Filter")]
 		public List<vItemType> ItemsFilter = new List<vItemType> ();
@@ -64,12 +71,16 @@ namespace Invector
 		[Header("Input Settings")]
 		public GenericInput OpenCloseWheelInput = new GenericInput("I", "LB", "LB");
 
+        public GenericInput CycleCategory = new GenericInput("Mouse ScrollWheel", "LB", "LB");
+
 
 		private int WheelItemCount {
 			get {
 				return GetWheelItems ().Count;
 			}
 		}
+
+
 		private List<InventoryWheelItem> WheelItemInstances = new List<InventoryWheelItem> ();
 		private List<Transform> WheelSeparatorInstances = new List<Transform> ();
 		private InventoryWheelItem SelectedItem, OldSelectedItem;
@@ -172,6 +183,20 @@ namespace Invector
 			} else if (OpenCloseWheelInput.GetButtonUp ()) {
 				CloseWheel ();
 			}
+
+            // try and cycle weapons when the wheel is open
+            if (IsWheelOpen)
+            {
+                if (CycleCategory.GetAxis() > 0)
+                {
+                    CycleItemCategory();
+                }
+                else if (CycleCategory.GetAxis() < 0)
+                {
+                    CycleItemCategory(false);
+                }
+            }
+
 		}
 
 
@@ -193,7 +218,6 @@ namespace Invector
 
             // build wheel
             BuildWheel();
-            //BuildCategoryWheel();
         }
 
 
@@ -277,6 +301,15 @@ namespace Invector
 			// update weapon display
 			UpdateWeaponDisplay (SelectedItem);
 		}
+
+        void CycleItemCategory(bool next = true)
+        {
+            if (SelectedItem == null || SelectedItem.Disabled || SelectedItem.CurrentItem == null)
+                return;
+
+            SelectedItem.CycleCategory(next);
+
+        }
 
 
 		void OpenWheel ()
@@ -363,10 +396,75 @@ namespace Invector
 			WheelSeparatorInstances.Clear ();
 		}
 
+        void BuildWheel()
+        {
+            FillAmount = 1f / (float)categories.Length;
+            FillRadius = FillAmount * 360f;
 
-        // build the wheel based on number of categories
-		void BuildWheel ()
+            // build items / separators
+            float prevRotation = 0f;
+            float rotationRadius = 120f;
+
+            for (int i = 0; i < categories.Length; i++)
+            {
+                // get inventory item
+                var category = categories[i];
+                List<vItem> thisCategoryInventoryItems = GetWheelItems(category.categoryType);
+
+
+                // calculate rotation
+                float rotationOffset = FillRadius / 2f;
+                float itemRotation = prevRotation + rotationOffset;
+                itemRotation = (itemRotation > 360f) ? itemRotation -= 360f : itemRotation;
+                prevRotation = itemRotation + rotationOffset;
+
+                // calculate position
+                Vector3 itemPosition = new Vector3(rotationRadius * Mathf.Cos((itemRotation - 90) * Mathf.Deg2Rad), -rotationRadius * Mathf.Sin((itemRotation - 90) * Mathf.Deg2Rad), 0f);
+
+                // create item
+                GameObject IWheelItem = new GameObject(category.name);
+                IWheelItem.transform.SetParent(ItemHolder, false);
+                IWheelItem.transform.position = Vector3.zero;
+                IWheelItem.transform.rotation = transform.rotation;
+                IWheelItem.transform.localPosition = itemPosition;
+
+                // assign item references and add it to the instance list
+                InventoryWheelItem IWheelItemScript = IWheelItem.AddComponent<InventoryWheelItem>();
+
+                if (thisCategoryInventoryItems.Count == 0)
+                    IWheelItemScript.Disabled = true;
+                else
+                    IWheelItemScript.Items = thisCategoryInventoryItems;
+
+                //IWheelItemScript.Item = Item;
+                //if (Item.originalObject != null)
+                //{
+                //    IWheelItemScript.ShooterWeapon = Item.originalObject.GetComponent<vShooterWeapon>();
+                //}
+
+                IWheelItemScript.Rotation = itemRotation;
+                IWheelItemScript.CachedImage = IWheelItem.GetComponent<Image>();
+                IWheelItemScript.CachedImage.sprite = category.icon;
+                IWheelItemScript.CachedImage.rectTransform.sizeDelta = WheelItemSize;
+                WheelItemInstances.Add(IWheelItemScript);
+
+                // instantiate separator
+                if (UseSeperators && SeparatorPrefab != null)
+                {
+                    GameObject IWheelSeparator = Instantiate(SeparatorPrefab, Vector3.zero, Quaternion.identity) as GameObject;
+                    IWheelSeparator.transform.SetParent(SeparatorHolder, false);
+                    IWheelSeparator.transform.localRotation = Quaternion.Euler(0f, 0f, prevRotation);
+
+                    // add separator to instance list
+                    WheelSeparatorInstances.Add(IWheelSeparator.transform);
+                }
+            }
+        }
+
+
+        void BuildWheelOld ()
 		{
+
 			if (WheelItemCount <= 0)
 				return;
 
@@ -378,6 +476,7 @@ namespace Invector
 			float prevRotation = 0f;
 			float rotationRadius = 120f;
 			List<vItem> InventoryItems = GetWheelItems ();
+
 			for (int i = 0; i < WheelItemCount; i++) {
 				// get inventory item
 				vItem Item = InventoryItems [i];
@@ -400,10 +499,12 @@ namespace Invector
 
 				// assign item references and add it to the instance list
 				InventoryWheelItem IWheelItemScript = IWheelItem.AddComponent<InventoryWheelItem> ();
-                IWheelItemScript.Item = Item;
-				if (Item.originalObject != null) {
-					IWheelItemScript.ShooterWeapon = Item.originalObject.GetComponent<vShooterWeapon> ();
-				}
+    //            IWheelItemScript.Item = Item;
+				//if (Item.originalObject != null) {
+				//	IWheelItemScript.ShooterWeapon = Item.originalObject.GetComponent<vShooterWeapon> ();
+				//}
+
+
 				IWheelItemScript.Rotation = itemRotation;
 				IWheelItemScript.CachedImage = IWheelItem.GetComponent<Image> ();
 				IWheelItemScript.CachedImage.sprite = Item.icon;
@@ -446,25 +547,38 @@ namespace Invector
 			return Inventory.items.FindAll(item => ItemsFilter.Contains(item.type));
 		}
 
+        /// <summary>
+        /// Retrieves the item based on a filtered type
+        /// </summary>
+        /// <param name="type"></param>
+        /// <returns></returns>
+        List<vItem> GetWheelItems(vItemType type)
+        {
+            return Inventory.items.FindAll(item => /*ItemsFilter.Contains(item.type)*/ item.type.Equals(type));
+        }
 
-		/// <summary>
-		/// Modify the method to fit your needs.
-		/// </summary>
-		/// <param name="selectedItem">Selected item.</param>
-		void UpdateWeaponDisplay (InventoryWheelItem selectedItem = null)
+
+        /// <summary>
+        /// Modify the method to fit your needs.
+        /// </summary>
+        /// <param name="selectedItem">Selected item.</param>
+        void UpdateWeaponDisplay (InventoryWheelItem selectedItem = null)
 		{
+            if (selectedItem.Disabled)
+                return;
+
 			if (WeaponDisplay == null)
 				return;
 
 			if (selectedItem != null) {
-				WeaponDisplay.SetWeaponIcon (selectedItem.Item.icon);
-				WeaponDisplay.SetWeaponText (selectedItem.Item.name);
+				WeaponDisplay.SetWeaponIcon (selectedItem.CurrentItem.icon);
+				WeaponDisplay.SetWeaponText (selectedItem.CurrentItem.name);
 
 				// get ammo item for current weapon
-				if (SelectedItem.Item.type == vItemType.ShooterWeapon && selectedItem.ShooterWeapon != null) {
+				if (SelectedItem.CurrentItem.type == vItemType.ShooterWeapon && selectedItem.ShooterWeapon != null) {
 					vItem ammoItem = Inventory.items.Where (_item => _item.id.Equals (selectedItem.ShooterWeapon.ammoID)).FirstOrDefault ();
 					if (ammoItem != null) {
-                        vItemAttribute weaponAmmoCount = selectedItem.Item.attributes.Find(a => a.name.Equals(Invector.vItemManager.vItemAttributes.AmmoCount));
+                        vItemAttribute weaponAmmoCount = selectedItem.CurrentItem.attributes.Find(a => a.name.Equals(Invector.vItemManager.vItemAttributes.AmmoCount));
 
                         // update ammo
                         if (weaponAmmoCount != null) {
@@ -500,44 +614,33 @@ namespace Invector
 		/// <param name="selectedItem">Selected item.</param>
 		void EquipItem (InventoryWheelItem selectedItem)
 		{
-            if (selectedItem == null || selectedItem.Item == null || selectedItem.Disabled)
+            if (selectedItem == null || selectedItem.Disabled || selectedItem.CurrentItem == null)
 				return;
 
 			if (Inventory == null || !Inventory.canEquip)
 				return;
 
-			switch (selectedItem.Item.type) {
+			switch (selectedItem.CurrentItem.type) {
 				case vItemType.Ammo:
 					Debug.Log ("Want to eat some ammo? That's weird...");
 					break;
 				case vItemType.Consumable:
-					Debug.LogFormat ("Consuming item: {0}", selectedItem.Item.name);
+					Debug.LogFormat ("Consuming item: {0}", selectedItem.CurrentItem.name);
 					break;
 				case vItemType.MeleeWeapon:
-					Debug.LogFormat ("Equipping melee weapon: {0}", selectedItem.Item.name);
-                    Inventory.changeEquipmentControllers[0].equipArea.AddItemToEquipSlot(0, selectedItem.Item);
+					Debug.LogFormat ("Equipping melee weapon: {0}", selectedItem.CurrentItem.name);
+                    Inventory.changeEquipmentControllers[0].equipArea.AddItemToEquipSlot(0, selectedItem.CurrentItem);
                     break;
 				case vItemType.ShooterWeapon:
-					Debug.LogFormat ("Equipping shooter weapon: {0}", selectedItem.Item.name);
-                    Inventory.changeEquipmentControllers[0].equipArea.AddItemToEquipSlot(0, selectedItem.Item);
+					Debug.LogFormat ("Equipping shooter weapon: {0}", selectedItem.CurrentItem.name);
+                    Inventory.changeEquipmentControllers[0].equipArea.AddItemToEquipSlot(0, selectedItem.CurrentItem);
                     break;
 				default:
-                    Debug.LogErrorFormat("Don't know how to equip item type: {0}!", selectedItem.Item.type);
+                    Debug.LogErrorFormat("Don't know how to equip item type: {0}!", selectedItem.CurrentItem.type);
                     break;
 			}
 		}
         #endregion
-
-        [Serializable]
-        private class WheelAreaCategory
-        {
-            [SerializeField] private string nameDisplay;
-            [SerializeField] private vItemType itemType;
-            [SerializeField] private Sprite displaySprite;
-
-            public string NameDisplay => nameDisplay;
-            public Sprite DisplaySprite => displaySprite;
-        }
     }
 
 
