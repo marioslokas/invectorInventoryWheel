@@ -15,9 +15,11 @@ namespace Invector
 		[Header("Ammo sources")]
 		public Image ammoIcon;
 		public Text ammoText;
+        public string defaultAmmoText;
 
 
-		protected override void Start ()
+
+        protected override void Start ()
 		{
 			base.Start ();
 
@@ -64,7 +66,7 @@ namespace Invector
 			if (!ammoText)
 				return;
 			
-			ammoText.text = defaultText;
+			ammoText.text = defaultAmmoText;
 		}
 	}
 }

@@ -53,7 +53,9 @@ namespace Invector
                     CurrentItemIndex = Items.Count - 1;
                 }
             }
-            
+
+            ShooterWeapon = Items[CurrentItemIndex].originalObject.GetComponent<vShooterWeapon>();
+
         }
-	}
+    }
 }

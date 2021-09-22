@@ -8,9 +8,12 @@ namespace Invector
         [Header("Weapon Display source")]
         public Image weaponIcon;
         public Text weaponText;
+        public string defaultWeaponText;
+
         [Header("Weapon unarmed sources")]
         public Sprite defaultIcon;
         public string defaultText;
+
 
         protected virtual void Start()
         {

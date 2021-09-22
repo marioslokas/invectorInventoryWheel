@@ -64,6 +64,10 @@ namespace Invector
 		public InventoryWheelWeaponDisplay WeaponDisplay;
         [SerializeField] private vThirdPersonInput thirdPersonInput;
 
+        [Header("Empty Category references")]
+        public Sprite emptyCategoryIcon;
+        public string emptyCategoryText;
+
 		[Header("Audio Settings")]
 		public AudioClip OpenInventorySound;
 		public AudioClip CloseInventorySound;
@@ -461,7 +465,13 @@ namespace Invector
                     disabledCategories.Add(category.categoryType); // store this type as one that has no items currently
                 }
                 else
+                {
                     IWheelItemScript.Items = thisCategoryInventoryItems;
+                    if (IWheelItemScript.CurrentItem.originalObject != null)
+                    {
+                        IWheelItemScript.ShooterWeapon = IWheelItemScript.CurrentItem.originalObject.GetComponent<vShooterWeapon>();
+                    }
+                }
 
                 //IWheelItemScript.Item = Item;
                 //if (Item.originalObject != null)
@@ -474,7 +484,6 @@ namespace Invector
                 IWheelItemScript.CachedImage.sprite = category.icon;
                 IWheelItemScript.CachedImage.rectTransform.sizeDelta = WheelItemSize;
                 WheelItemInstances.Add(IWheelItemScript);
-                Debug.Log("Adding category to wheel");
 
 
                 // instantiate separator
@@ -609,7 +618,16 @@ namespace Invector
         void UpdateWeaponDisplay (InventoryWheelItem selectedItem = null)
 		{
             if (selectedItem.Disabled)
+            {
+                // show empty item sprite
+                WeaponDisplay.SetWeaponIcon(emptyCategoryIcon);
+                WeaponDisplay.SetWeaponText(emptyCategoryText);
+
+                WeaponDisplay.RemoveWeaponText();
+                WeaponDisplay.RemoveAmmoIcon();
+                WeaponDisplay.RemoveAmmoText();
                 return;
+            }
 
 			if (WeaponDisplay == null)
 				return;
@@ -618,26 +636,34 @@ namespace Invector
 				WeaponDisplay.SetWeaponIcon (selectedItem.CurrentItem.icon);
 				WeaponDisplay.SetWeaponText (selectedItem.CurrentItem.name);
 
-				// get ammo item for current weapon
-				if (SelectedItem.CurrentItem.type == vItemType.ShooterWeapon && selectedItem.ShooterWeapon != null) {
+                // get ammo item for current weapon
+                if (SelectedItem.CurrentItem.type == vItemType.ShooterWeapon 
+                    && selectedItem.ShooterWeapon != null)
+                {
 					vItem ammoItem = Inventory.items.Where (_item => _item.id.Equals (selectedItem.ShooterWeapon.ammoID)).FirstOrDefault ();
-					if (ammoItem != null) {
-                        vItemAttribute weaponAmmoCount = selectedItem.CurrentItem.attributes.Find(a => a.name.Equals(Invector.vItemManager.vItemAttributes.AmmoCount));
 
-                        // update ammo
-                        if (weaponAmmoCount != null) {
-							// ammo in weapon / inventory
-							string totalAmmo = string.Format ("{0} / {1}", weaponAmmoCount.value, ammoItem.amount);
+                    int ammoItemAmount;
 
-							// update display
-							WeaponDisplay.SetAmmoIcon (ammoItem.icon);
-							WeaponDisplay.SetAmmoText (totalAmmo);
-						}
+                    if (ammoItem != null)
+                    {
+                        ammoItemAmount = ammoItem.amount;
+                    }
+                    else
+                        ammoItemAmount = 0;
+
+                    vItemAttribute weaponAmmoCount = selectedItem.CurrentItem.attributes.Find(a => a.name.Equals(Invector.vItemManager.vItemAttributes.AmmoCount));
+
+                    // update ammo
+                    if (weaponAmmoCount != null) {
+
+                        // ammo in weapon / inventory
+                        string totalAmmo = string.Format ("{0} / {1}", weaponAmmoCount.value, ammoItemAmount);
+
+						// update display
+						WeaponDisplay.SetAmmoIcon (ammoItem.icon);
+						WeaponDisplay.SetAmmoText (totalAmmo);
 					}
-                    else {
-						WeaponDisplay.RemoveAmmoIcon ();
-						WeaponDisplay.RemoveAmmoText ();
-					}
+                    
 				}
                 else {
 					WeaponDisplay.RemoveAmmoIcon ();
